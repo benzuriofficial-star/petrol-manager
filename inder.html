@@ -1,0 +1,2319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PetroManager Pro - PKR Edition</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #1e3a8a;
+            --secondary: #3b82f6;
+            --accent: #f59e0b;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --dark: #1f2937;
+            --light: #f3f4f6;
+            --white: #ffffff;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f2f5;
+            color: var(--dark);
+        }
+
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Navigation */
+        .sidebar {
+            width: 280px;
+            background: linear-gradient(180deg, var(--primary) 0%, #0f172a 100%);
+            color: var(--white);
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            transition: all 0.3s;
+            z-index: 1000;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            background: rgba(0,0,0,0.2);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .sidebar-header h1 {
+            font-size: 24px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .sidebar-header span {
+            color: var(--accent);
+        }
+
+        .nav-menu {
+            padding: 20px 0;
+        }
+
+        .nav-item {
+            padding: 15px 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-left: 4px solid transparent;
+        }
+
+        .nav-item:hover, .nav-item.active {
+            background: rgba(255,255,255,0.1);
+            border-left-color: var(--accent);
+        }
+
+        .nav-item i {
+            width: 24px;
+            text-align: center;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 30px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            background: var(--white);
+            padding: 20px 30px;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+        }
+
+        .header h2 {
+            color: var(--primary);
+            font-size: 28px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .date-time {
+            text-align: right;
+            color: #666;
+        }
+
+        /* Dashboard Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: var(--white);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 5px;
+            height: 100%;
+        }
+
+        .stat-card.sales::before { background: var(--success); }
+        .stat-card.expenses::before { background: var(--danger); }
+        .stat-card.profit::before { background: var(--secondary); }
+        .stat-card.stock::before { background: var(--warning); }
+
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 15px;
+        }
+
+        .stat-title {
+            color: #6b7280;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .sales .stat-icon { background: #d1fae5; color: var(--success); }
+        .expenses .stat-icon { background: #fee2e2; color: var(--danger); }
+        .profit .stat-icon { background: #dbeafe; color: var(--secondary); }
+        .stock .stat-icon { background: #fef3c7; color: var(--warning); }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 5px;
+        }
+
+        .stat-change {
+            font-size: 14px;
+            color: #6b7280;
+        }
+
+        .stat-change.positive { color: var(--success); }
+        .stat-change.negative { color: var(--danger); }
+
+        /* Content Sections */
+        .section {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: var(--shadow);
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+            animation: fadeIn 0.4s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--light);
+        }
+
+        .section-title {
+            font-size: 22px;
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: var(--white);
+        }
+
+        .btn-primary:hover {
+            background: #1e40af;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(30, 58, 138, 0.3);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: var(--white);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: var(--white);
+        }
+
+        .btn-warning {
+            background: var(--warning);
+            color: var(--white);
+        }
+
+        .btn-secondary {
+            background: #6b7280;
+            color: var(--white);
+        }
+
+        /* Forms */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #374151;
+            font-size: 14px;
+        }
+
+        .form-control {
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--secondary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        /* Tables */
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        th {
+            background: #f9fafb;
+            font-weight: 600;
+            color: var(--primary);
+            text-transform: uppercase;
+            font-size: 12px;
+            letter-spacing: 0.5px;
+        }
+
+        tr:hover {
+            background: #f9fafb;
+        }
+
+        .status-badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-active {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-warning {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-danger {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        /* Pump Interface */
+        .pump-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+        }
+
+        .pump-card {
+            background: linear-gradient(135deg, #f3f4f6 0%, #ffffff 100%);
+            border: 2px solid #e5e7eb;
+            border-radius: 16px;
+            padding: 25px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .pump-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .pump-number {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .pump-status {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--success);
+            box-shadow: 0 0 10px var(--success);
+        }
+
+        .pump-status.busy {
+            background: var(--warning);
+            box-shadow: 0 0 10px var(--warning);
+        }
+
+        .meter-display {
+            background: #000;
+            color: #0f0;
+            font-family: 'Courier New', monospace;
+            padding: 20px;
+            border-radius: 8px;
+            font-size: 32px;
+            text-align: right;
+            margin-bottom: 15px;
+            letter-spacing: 2px;
+        }
+
+        .fuel-selector {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .fuel-type {
+            padding: 10px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .fuel-type:hover, .fuel-type.active {
+            border-color: var(--secondary);
+            background: #eff6ff;
+        }
+
+        .fuel-type.active {
+            background: var(--secondary);
+            color: white;
+        }
+
+        /* Modals */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--white);
+            border-radius: 16px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: slideUp 0.3s;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-header {
+            padding: 25px;
+            border-bottom: 2px solid var(--light);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-body {
+            padding: 25px;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #6b7280;
+        }
+
+        /* Accounting Specific */
+        .accounting-summary {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .account-card {
+            background: #f9fafb;
+            padding: 20px;
+            border-radius: 12px;
+            border-left: 4px solid var(--primary);
+        }
+
+        .account-card h4 {
+            color: #6b7280;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .account-card .amount {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--dark);
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+
+        .tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Alert Box */
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid;
+        }
+
+        .alert-warning {
+            background: #fef3c7;
+            border-left-color: var(--warning);
+            color: #92400e;
+        }
+
+        .alert-danger {
+            background: #fee2e2;
+            border-left-color: var(--danger);
+            color: #991b1b;
+        }
+
+        .alert-success {
+            background: #d1fae5;
+            border-left-color: var(--success);
+            color: #065f46;
+        }
+
+        /* Utility */
+        .text-right { text-align: right; }
+        .text-center { text-align: center; }
+        .mt-4 { margin-top: 20px; }
+        .mb-4 { margin-bottom: 20px; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+
+        @media (max-width: 768px) {
+            .sidebar { width: 100%; position: relative; height: auto; }
+            .main-content { margin-left: 0; }
+            .container { flex-direction: column; }
+            .accounting-summary { grid-template-columns: 1fr; }
+        }
+
+        @media print {
+            .sidebar, .header, .btn { display: none; }
+            .main-content { margin-left: 0; padding: 0; }
+            .section { display: block !important; box-shadow: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h1>⛽ Petro<span>Manager</span></h1>
+                <p style="font-size: 12px; opacity: 0.8; margin-top: 5px;">PKR Accounting Edition</p>
+            </div>
+            
+            <nav class="nav-menu">
+                <div class="nav-item active" onclick="showSection('dashboard')">
+                    <span>📊</span> Dashboard
+                </div>
+                <div class="nav-item" onclick="showSection('pumps')">
+                    <span>⛽</span> Pump Management
+                </div>
+                <div class="nav-item" onclick="showSection('inventory')">
+                    <span>🛢️</span> Inventory/Tanks
+                </div>
+                <div class="nav-item" onclick="showSection('sales')">
+                    <span>💰</span> Sales & POS
+                </div>
+                <div class="nav-item" onclick="showSection('accounting')">
+                    <span>📒</span> Accounting
+                </div>
+                <div class="nav-item" onclick="showSection('reports')">
+                    <span>📈</span> Reports
+                </div>
+                <div class="nav-item" onclick="showSection('customers')">
+                    <span>👥</span> Customers
+                </div>
+                <div class="nav-item" onclick="showSection('settings')">
+                    <span>⚙️</span> Settings
+                </div>
+                <div class="nav-item" onclick="showSection('data')">
+                    <span>🗄️</span> Data Management
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <div class="header">
+                <div>
+                    <h2 id="page-title">Dashboard Overview</h2>
+                    <p style="color: #6b7280; margin-top: 5px;">Welcome back, Station Manager</p>
+                </div>
+                <div class="user-info">
+                    <div class="date-time">
+                        <div id="current-date" style="font-weight: 600;"></div>
+                        <div id="current-time" style="font-size: 14px;"></div>
+                    </div>
+                    <button class="btn btn-primary" onclick="openModal('newTransModal')">
+                        <span>+</span> Quick Sale
+                    </button>
+                </div>
+            </div>
+
+            <!-- Dashboard Section -->
+            <div id="dashboard" class="section active">
+                <div class="stats-grid">
+                    <div class="stat-card sales">
+                        <div class="stat-header">
+                            <div>
+                                <div class="stat-title">Today's Sales</div>
+                                <div class="stat-value" id="today-sales">Rs. 0.00</div>
+                                <div class="stat-change positive">Ready for new data</div>
+                            </div>
+                            <div class="stat-icon">💵</div>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card expenses">
+                        <div class="stat-header">
+                            <div>
+                                <div class="stat-title">Today's Expenses</div>
+                                <div class="stat-value" id="today-expenses">Rs. 0.00</div>
+                                <div class="stat-change">No expenses recorded</div>
+                            </div>
+                            <div class="stat-icon">💸</div>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card profit">
+                        <div class="stat-header">
+                            <div>
+                                <div class="stat-title">Net Profit</div>
+                                <div class="stat-value" id="today-profit">Rs. 0.00</div>
+                                <div class="stat-change positive">Ready</div>
+                            </div>
+                            <div class="stat-icon">📈</div>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card stock">
+                        <div class="stat-header">
+                            <div>
+                                <div class="stat-title">Stock Value</div>
+                                <div class="stat-value" id="stock-value">Rs. 0.00</div>
+                                <div class="stat-change warning">Set initial stock</div>
+                            </div>
+                            <div class="stat-icon">🛢️</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid-2">
+                    <div class="section" style="display: block;">
+                        <h3 style="margin-bottom: 20px; color: var(--primary);">Fuel Sales by Type</h3>
+                        <div style="background: #f9fafb; padding: 40px; border-radius: 8px; text-align: center; color: #6b7280;">
+                            <p>No sales data yet. Add your first sale to see statistics.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="section" style="display: block;">
+                        <h3 style="margin-bottom: 20px; color: var(--primary);">Recent Transactions</h3>
+                        <div class="table-container">
+                            <table id="recent-transactions">
+                                <thead>
+                                    <tr>
+                                        <th>Time</th>
+                                        <th>Type</th>
+                                        <th>Amount</th>
+                                        <th>Payment</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td colspan="4" class="text-center" style="color: #6b7280; padding: 30px;">
+                                            No transactions recorded yet
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pump Management -->
+            <div id="pumps" class="section">
+                <div class="section-header">
+                    <h3 class="section-title">Pump Operations</h3>
+                    <button class="btn btn-primary" onclick="openModal('meterModal')">Record Meter Reading</button>
+                </div>
+                
+                <div class="pump-grid" id="pump-container">
+                    <!-- Generated by JS -->
+                </div>
+            </div>
+
+            <!-- Inventory Management -->
+            <div id="inventory" class="section">
+                <div class="section-header">
+                    <h3 class="section-title">Tank Inventory Management</h3>
+                    <div>
+                        <button class="btn btn-success" onclick="openModal('deliveryModal')">Record Delivery</button>
+                        <button class="btn btn-secondary" onclick="openModal('initialStockModal')" style="margin-left: 10px;">Set Initial Stock</button>
+                    </div>
+                </div>
+
+                <div class="alert alert-warning">
+                    <strong>Note:</strong> All tanks are empty. Use "Set Initial Stock" to add your current inventory, or use "Record Delivery" for new shipments.
+                </div>
+
+                <div class="form-grid" id="tank-cards">
+                    <!-- Generated by JS -->
+                </div>
+
+                <h3 style="margin: 30px 0 20px; color: var(--primary);">Stock Movements</h3>
+                <table id="inventory-log">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Tank</th>
+                            <th>Type</th>
+                            <th>Quantity</th>
+                            <th>Balance</th>
+                            <th>Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td colspan="6" class="text-center" style="color: #6b7280; padding: 30px;">
+                                No stock movements recorded
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Sales & POS -->
+            <div id="sales" class="section">
+                <div class="section-header">
+                    <h3 class="section-title">Sales Transactions</h3>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn btn-primary" onclick="openModal('newTransModal')">New Sale</button>
+                        <button class="btn btn-warning" onclick="generateInvoice()">Generate Invoice</button>
+                    </div>
+                </div>
+
+                <div class="form-grid mb-4">
+                    <div class="form-group">
+                        <label>Filter by Date</label>
+                        <input type="date" class="form-control" id="sales-filter-date">
+                    </div>
+                    <div class="form-group">
+                        <label>Payment Method</label>
+                        <select class="form-control" id="sales-filter-payment">
+                            <option value="">All Methods</option>
+                            <option value="cash">Cash</option>
+                            <option value="card">Card</option>
+                            <option value="credit">Credit</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Fuel Type</label>
+                        <select class="form-control" id="sales-filter-fuel" onchange="filterSales()">
+                            <option value="">All Types</option>
+                            <option value="petrol">Petrol</option>
+                            <option value="diesel">Diesel</option>
+                            <option value="premium">Premium</option>
+                        </select>
+                    </div>
+                </div>
+
+                <table id="sales-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Date/Time</th>
+                            <th>Fuel Type</th>
+                            <th>Quantity (L)</th>
+                            <th>Price/L</th>
+                            <th>Total</th>
+                            <th>Payment</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td colspan="8" class="text-center" style="color: #6b7280; padding: 30px;">
+                                No sales transactions yet. Click "New Sale" to add your first transaction.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Accounting Section -->
+            <div id="accounting" class="section">
+                <div class="tabs">
+                    <div class="tab active" onclick="showTab('ledger')">General Ledger</div>
+                    <div class="tab" onclick="showTab('expenses')">Expenses</div>
+                    <div class="tab" onclick="showTab('revenue')">Revenue</div>
+                    <div class="tab" onclick="showTab('tax')">Tax Management</div>
+                </div>
+
+                <div id="ledger" class="tab-content active">
+                    <div class="accounting-summary">
+                        <div class="account-card">
+                            <h4>Assets (Cash & Stock)</h4>
+                            <div class="amount" id="total-assets">Rs. 0.00</div>
+                        </div>
+                        <div class="account-card" style="border-left-color: var(--danger);">
+                            <h4>Liabilities (Taxes Due)</h4>
+                            <div class="amount" id="total-liabilities">Rs. 0.00</div>
+                        </div>
+                        <div class="account-card" style="border-left-color: var(--success);">
+                            <h4>Net Equity</h4>
+                            <div class="amount" id="total-equity">Rs. 0.00</div>
+                        </div>
+                    </div>
+
+                    <h3 style="margin-bottom: 15px;">Chart of Accounts</h3>
+                    <table id="ledger-table">
+                        <thead>
+                            <tr>
+                                <th>Account Code</th>
+                                <th>Account Name</th>
+                                <th>Type</th>
+                                <th>Debit</th>
+                                <th>Credit</th>
+                                <th>Balance</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="6" class="text-center" style="color: #6b7280; padding: 30px;">
+                                    No accounting entries yet. Add sales or expenses to see ledger entries.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div id="expenses" class="tab-content">
+                    <button class="btn btn-danger mb-4" onclick="openModal('expenseModal')">Record Expense</button>
+                    
+                    <div class="form-grid mb-4">
+                        <div class="form-group">
+                            <label>Category</label>
+                            <select class="form-control" id="expense-category-filter" onchange="filterExpenses()">
+                                <option value="">All Categories</option>
+                                <option value="utilities">Utilities (KE, SSGC)</option>
+                                <option value="salaries">Salaries</option>
+                                <option value="maintenance">Maintenance</option>
+                                <option value="rent">Rent/Lease</option>
+                                <option value="supplies">Supplies</option>
+                                <option value="license">License/Fees</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Date Range</label>
+                            <input type="date" class="form-control" id="expense-date-from">
+                        </div>
+                    </div>
+
+                    <table id="expenses-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Category</th>
+                                <th>Description</th>
+                                <th>Amount (PKR)</th>
+                                <th>Receipt #</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="5" class="text-center" style="color: #6b7280; padding: 30px;">
+                                    No expenses recorded yet
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div id="revenue" class="tab-content">
+                    <h3 style="margin-bottom: 20px;">Revenue Breakdown</h3>
+                    <div style="background: #f9fafb; padding: 40px; border-radius: 8px; text-align: center; color: #6b7280; margin-bottom: 30px;">
+                        <p>No revenue data available. Complete your first sale to see revenue analytics.</p>
+                    </div>
+                    
+                    <table id="revenue-table">
+                        <thead>
+                            <tr>
+                                <th>Source</th>
+                                <th>This Month</th>
+                                <th>Last Month</th>
+                                <th>YTD</th>
+                                <th>% of Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="5" class="text-center" style="color: #6b7280; padding: 30px;">
+                                    No data available
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div id="tax" class="tab-content">
+                    <div class="accounting-summary">
+                        <div class="account-card">
+                            <h4>Sales Tax Collected</h4>
+                            <div class="amount" id="tax-collected">Rs. 0.00</div>
+                        </div>
+                        <div class="account-card" style="border-left-color: var(--danger);">
+                            <h4>Tax Payable</h4>
+                            <div class="amount" id="tax-payable">Rs. 0.00</div>
+                        </div>
+                    </div>
+
+                    <h3 style="margin: 20px 0;">Tax Transactions</h3>
+                    <table id="tax-table">
+                        <thead>
+                            <tr>
+                                <th>Period</th>
+                                <th>Taxable Sales</th>
+                                <th>Tax Rate</th>
+                                <th>Tax Amount</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="5" class="text-center" style="color: #6b7280; padding: 30px;">
+                                    No tax data available
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Reports -->
+            <div id="reports" class="section">
+                <div class="section-header">
+                    <h3 class="section-title">Financial Reports</h3>
+                    <button class="btn btn-primary" onclick="window.print()">Print Reports</button>
+                </div>
+
+                <div class="form-grid mb-4">
+                    <div class="form-group">
+                        <label>Report Type</label>
+                        <select class="form-control" id="report-type">
+                            <option value="daily">Daily Summary</option>
+                            <option value="monthly">Monthly P&L</option>
+                            <option value="inventory">Inventory Report</option>
+                            <option value="tax">Tax Report</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Start Date</label>
+                        <input type="date" class="form-control" id="report-start">
+                    </div>
+                    <div class="form-group">
+                        <label>End Date</label>
+                        <input type="date" class="form-control" id="report-end">
+                    </div>
+                    <div class="form-group">
+                        <label style="opacity: 0;">Generate</label>
+                        <button class="btn btn-success" onclick="generateReport()" style="width: 100%;">Generate Report</button>
+                    </div>
+                </div>
+
+                <div id="report-content" class="mt-4">
+                    <div class="text-center" style="padding: 60px; color: #6b7280;">
+                        <h3>Select report parameters and click Generate</h3>
+                        <p>No historical data available. Add transactions to generate reports.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Customers -->
+            <div id="customers" class="section">
+                <div class="section-header">
+                    <h3 class="section-title">Customer Management</h3>
+                    <button class="btn btn-primary" onclick="openModal('customerModal')">Add Customer</button>
+                </div>
+
+                <table id="customers-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Contact</th>
+                            <th>Credit Limit</th>
+                            <th>Balance Due</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td colspan="7" class="text-center" style="color: #6b7280; padding: 30px;">
+                                No customers added yet
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Data Management Section -->
+            <div id="data" class="section">
+                <div class="section-header">
+                    <h3 class="section-title">Data Management</h3>
+                </div>
+
+                <div class="alert alert-danger">
+                    <strong>⚠️ Warning:</strong> The actions below will permanently delete your data. Make sure to export any important information before proceeding.
+                </div>
+
+                <div class="form-grid" style="margin-top: 30px;">
+                    <div style="background: #f9fafb; padding: 30px; border-radius: 12px; border: 2px solid #e5e7eb;">
+                        <h4 style="color: var(--danger); margin-bottom: 15px;">Reset All Data</h4>
+                        <p style="color: #6b7280; margin-bottom: 20px;">
+                            Clear all sales, expenses, customers, and stock history. This will reset the system to fresh state.
+                        </p>
+                        <button class="btn btn-danger" onclick="resetAllData()" style="width: 100%;">
+                            Clear All Data & Start Fresh
+                        </button>
+                    </div>
+
+                    <div style="background: #f9fafb; padding: 30px; border-radius: 12px; border: 2px solid #e5e7eb;">
+                        <h4 style="color: var(--warning); margin-bottom: 15px;">Reset Only Sales</h4>
+                        <p style="color: #6b7280; margin-bottom: 20px;">
+                            Keep inventory and settings but delete all sales transactions and accounting records.
+                        </p>
+                        <button class="btn btn-warning" onclick="resetSalesOnly()" style="width: 100%;">
+                            Clear Sales Only
+                        </button>
+                    </div>
+
+                    <div style="background: #f9fafb; padding: 30px; border-radius: 12px; border: 2px solid #e5e7eb;">
+                        <h4 style="color: var(--primary); margin-bottom: 15px;">Export Data</h4>
+                        <p style="color: #6b7280; margin-bottom: 20px;">
+                            Save all your data as a JSON file for backup or transfer to another device.
+                        </p>
+                        <button class="btn btn-primary" onclick="exportData()" style="width: 100%;">
+                            Download Backup File
+                        </button>
+                    </div>
+
+                    <div style="background: #f9fafb; padding: 30px; border-radius: 12px; border: 2px solid #e5e7eb;">
+                        <h4 style="color: var(--success); margin-bottom: 15px;">Import Data</h4>
+                        <p style="color: #6b7280; margin-bottom: 20px;">
+                            Restore from a previous backup file.
+                        </p>
+                        <input type="file" id="importFile" accept=".json" style="display: none;" onchange="importData(this)">
+                        <button class="btn btn-success" onclick="document.getElementById('importFile').click()" style="width: 100%;">
+                            Upload Backup File
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings -->
+            <div id="settings" class="section">
+                <h3 class="section-title">Station Configuration</h3>
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Station Name</label>
+                        <input type="text" class="form-control" id="setting-name" value="Your Petro Station">
+                    </div>
+                    <div class="form-group">
+                        <label>Tax Rate (%)</label>
+                        <input type="number" class="form-control" id="setting-tax" value="18" step="0.1">
+                        <small style="color: #6b7280; margin-top: 5px;">Standard GST rate in Pakistan is 18%</small>
+                    </div>
+                    <div class="form-group">
+                        <label>Currency</label>
+                        <select class="form-control" id="setting-currency" disabled>
+                            <option value="PKR" selected>PKR (Rs.) - Pakistani Rupee</option>
+                        </select>
+                        <small style="color: #6b7280; margin-top: 5px;">Currency is fixed to PKR</small>
+                    </div>
+                    <div class="form-group">
+                        <label>Low Stock Alert (Liters)</label>
+                        <input type="number" class="form-control" id="setting-alert" value="1000">
+                    </div>
+                </div>
+
+                <h3 style="margin: 30px 0 20px; color: var(--primary);">Fuel Pricing (PKR per Liter)</h3>
+                <div class="form-grid" id="pricing-settings">
+                    <!-- Generated by JS -->
+                </div>
+
+                <button class="btn btn-primary mt-4" onclick="saveSettings()">Save All Settings</button>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modals -->
+    
+    <!-- New Transaction Modal -->
+    <div id="newTransModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>New Sale Transaction (PKR)</h3>
+                <button class="close-btn" onclick="closeModal('newTransModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="saleForm" onsubmit="processSale(event)">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Fuel Type *</label>
+                            <select class="form-control" id="sale-fuel" required onchange="updateSalePrice()">
+                                <option value="petrol">Petrol</option>
+                                <option value="diesel">Diesel</option>
+                                <option value="premium">Premium</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Price per Liter (Rs.) *</label>
+                            <input type="number" class="form-control" id="sale-price" step="0.01" required readonly>
+                        </div>
+                        <div class="form-group">
+                            <label>Quantity (Liters) *</label>
+                            <input type="number" class="form-control" id="sale-qty" step="0.01" required oninput="calculateSaleTotal()">
+                        </div>
+                        <div class="form-group">
+                            <label>Total Amount (Rs.)</label>
+                            <input type="text" class="form-control" id="sale-total" readonly style="font-weight: bold; color: var(--primary);">
+                        </div>
+                        <div class="form-group">
+                            <label>Payment Method *</label>
+                            <select class="form-control" id="sale-payment" required>
+                                <option value="cash">Cash</option>
+                                <option value="card">Credit/Debit Card</option>
+                                <option value="credit">Credit Account</option>
+                                <option value="easypaisa">Easypaisa</option>
+                                <option value="jazzcash">JazzCash</option>
+                                <option value="sadapay">SadaPay</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Pump Number</label>
+                            <select class="form-control" id="sale-pump">
+                                <option value="1">Pump 01</option>
+                                <option value="2">Pump 02</option>
+                                <option value="3">Pump 03</option>
+                                <option value="4">Pump 04</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-success" style="width: 100%; margin-top: 20px; padding: 15px;">
+                        Complete Sale (Rs.)
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Initial Stock Modal -->
+    <div id="initialStockModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Set Initial Stock Levels</h3>
+                <button class="close-btn" onclick="closeModal('initialStockModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form onsubmit="setInitialStock(event)">
+                    <div class="alert alert-warning" style="margin-bottom: 20px;">
+                        Use this to set your current tank levels. This will overwrite any existing stock data.
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Petrol Current Stock (Liters)</label>
+                            <input type="number" class="form-control" id="initial-petrol" step="0.1" value="0" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Petrol Tank Capacity (Liters)</label>
+                            <input type="number" class="form-control" id="capacity-petrol" step="0.1" value="10000" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Diesel Current Stock (Liters)</label>
+                            <input type="number" class="form-control" id="initial-diesel" step="0.1" value="0" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Diesel Tank Capacity (Liters)</label>
+                            <input type="number" class="form-control" id="capacity-diesel" step="0.1" value="12000" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Premium Current Stock (Liters)</label>
+                            <input type="number" class="form-control" id="initial-premium" step="0.1" value="0" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Premium Tank Capacity (Liters)</label>
+                            <input type="number" class="form-control" id="capacity-premium" step="0.1" value="8000" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-success" style="width: 100%; margin-top: 20px;">
+                        Set Initial Stock Levels
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Expense Modal -->
+    <div id="expenseModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Record Expense (PKR)</h3>
+                <button class="close-btn" onclick="closeModal('expenseModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form onsubmit="addExpense(event)">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Category *</label>
+                            <select class="form-control" id="expense-cat" required>
+                                <option value="utilities">Utilities (KE, SSGC)</option>
+                                <option value="salaries">Staff Salaries</option>
+                                <option value="maintenance">Pump Maintenance</option>
+                                <option value="rent">Station Rent/Lease</option>
+                                <option value="supplies">Office Supplies</option>
+                                <option value="license">PSO/License Fees</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Amount (Rs.) *</label>
+                            <input type="number" class="form-control" id="expense-amt" step="0.01" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Date *</label>
+                            <input type="date" class="form-control" id="expense-date" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Receipt/Reference #</label>
+                            <input type="text" class="form-control" id="expense-ref">
+                        </div>
+                    </div>
+                    <div class="form-group" style="margin-top: 15px;">
+                        <label>Description</label>
+                        <textarea class="form-control" id="expense-desc" rows="3"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-danger" style="width: 100%; margin-top: 20px;">
+                        Record Expense
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delivery Modal -->
+    <div id="deliveryModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Record Fuel Delivery</h3>
+                <button class="close-btn" onclick="closeModal('deliveryModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form onsubmit="recordDelivery(event)">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Tank *</label>
+                            <select class="form-control" id="delivery-tank" required>
+                                <!-- Populated by JS -->
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Quantity (Liters) *</label>
+                            <input type="number" class="form-control" id="delivery-qty" step="0.1" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Purchase Price per Liter (Rs.) *</label>
+                            <input type="number" class="form-control" id="delivery-cost" step="0.01" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Supplier Invoice #</label>
+                            <input type="text" class="form-control" id="delivery-invoice">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-success" style="width: 100%; margin-top: 20px;">
+                        Record Delivery
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Customer Modal -->
+    <div id="customerModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Add New Customer</h3>
+                <button class="close-btn" onclick="closeModal('customerModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form onsubmit="addCustomer(event)">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Full Name *</label>
+                            <input type="text" class="form-control" id="cust-name" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Phone</label>
+                            <input type="tel" class="form-control" id="cust-phone" placeholder="03XX-XXXXXXX">
+                        </div>
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" class="form-control" id="cust-email">
+                        </div>
+                        <div class="form-group">
+                            <label>Credit Limit (Rs.)</label>
+                            <input type="number" class="form-control" id="cust-limit" value="0" step="0.01">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 20px;">
+                        Add Customer
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize with empty data for fresh start
+        let db = {
+            sales: [],
+            expenses: [],
+            inventory: {
+                petrol: { current: 0, capacity: 10000, price: 260.00, cost: 240.00 },
+                diesel: { current: 0, capacity: 12000, price: 280.00, cost: 260.00 },
+                premium: { current: 0, capacity: 8000, price: 290.00, cost: 270.00 }
+            },
+            customers: [],
+            pumps: [
+                { id: 1, status: 'idle', currentMeter: 0, fuel: 'petrol' },
+                { id: 2, status: 'idle', currentMeter: 0, fuel: 'diesel' },
+                { id: 3, status: 'idle', currentMeter: 0, fuel: 'petrol' },
+                { id: 4, status: 'idle', currentMeter: 0, fuel: 'premium' }
+            ],
+            settings: {
+                name: 'Your Petro Station',
+                taxRate: 18, // Pakistan GST
+                currency: 'PKR',
+                fuelPrices: { petrol: 260.00, diesel: 280.00, premium: 290.00 }
+            }
+        };
+
+        // Check if there's saved data in localStorage
+        function loadData() {
+            const savedSales = localStorage.getItem('petro_sales');
+            const savedExpenses = localStorage.getItem('petro_expenses');
+            const savedInventory = localStorage.getItem('petro_inventory');
+            const savedCustomers = localStorage.getItem('petro_customers');
+            const savedSettings = localStorage.getItem('petro_settings');
+            const savedPumps = localStorage.getItem('petro_pumps');
+
+            if (savedSales) db.sales = JSON.parse(savedSales);
+            if (savedExpenses) db.expenses = JSON.parse(savedExpenses);
+            if (savedInventory) db.inventory = JSON.parse(savedInventory);
+            if (savedCustomers) db.customers = JSON.parse(savedCustomers);
+            if (savedSettings) db.settings = JSON.parse(savedSettings);
+            if (savedPumps) db.pumps = JSON.parse(savedPumps);
+        }
+
+        // Save data to localStorage
+        function saveData() {
+            localStorage.setItem('petro_sales', JSON.stringify(db.sales));
+            localStorage.setItem('petro_expenses', JSON.stringify(db.expenses));
+            localStorage.setItem('petro_inventory', JSON.stringify(db.inventory));
+            localStorage.setItem('petro_customers', JSON.stringify(db.customers));
+            localStorage.setItem('petro_settings', JSON.stringify(db.settings));
+            localStorage.setItem('petro_pumps', JSON.stringify(db.pumps));
+        }
+
+        // Format currency as PKR
+        function formatMoney(amount) {
+            return 'Rs. ' + amount.toLocaleString('en-PK', { 
+                minimumFractionDigits: 2, 
+                maximumFractionDigits: 2 
+            });
+        }
+
+        function generateId() {
+            return Date.now().toString(36) + Math.random().toString(36).substr(2);
+        }
+
+        function getTodayDate() {
+            return new Date().toISOString().split('T')[0];
+        }
+
+        // Navigation
+        function showSection(sectionId) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            
+            document.getElementById(sectionId).classList.add('active');
+            event.target.closest('.nav-item').classList.add('active');
+            
+            const titles = {
+                'dashboard': 'Dashboard Overview',
+                'pumps': 'Pump Management',
+                'inventory': 'Inventory Control',
+                'sales': 'Sales & Transactions',
+                'accounting': 'Accounting & Finance',
+                'reports': 'Reports & Analytics',
+                'customers': 'Customer Database',
+                'settings': 'System Settings',
+                'data': 'Data Management'
+            };
+            
+            document.getElementById('page-title').textContent = titles[sectionId];
+            
+            if (sectionId === 'dashboard') updateDashboard();
+            if (sectionId === 'inventory') renderInventory();
+            if (sectionId === 'sales') renderSales();
+            if (sectionId === 'accounting') updateAccounting();
+            if (sectionId === 'pumps') renderPumps();
+            if (sectionId === 'customers') renderCustomers();
+            if (sectionId === 'settings') renderSettings();
+        }
+
+        function showTab(tabId) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        }
+
+        // Modal Functions
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.add('active');
+            if (modalId === 'newTransModal') {
+                updateSalePrice();
+                document.getElementById('expense-date').value = getTodayDate();
+            }
+            if (modalId === 'deliveryModal') {
+                const tankSelect = document.getElementById('delivery-tank');
+                tankSelect.innerHTML = Object.keys(db.inventory).map(fuel => 
+                    `<option value="${fuel}">${fuel.charAt(0).toUpperCase() + fuel.slice(1)} Tank (${db.inventory[fuel].current}L)</option>`
+                ).join('');
+            }
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        // Data Management Functions
+        function resetAllData() {
+            if (confirm('⚠️ WARNING: This will delete ALL data including sales, expenses, customers, and stock history. This action cannot be undone.\n\nAre you sure you want to continue?')) {
+                if (confirm('Final confirmation: Type DELETE to confirm complete data reset')) {
+                    localStorage.removeItem('petro_sales');
+                    localStorage.removeItem('petro_expenses');
+                    localStorage.removeItem('petro_inventory');
+                    localStorage.removeItem('petro_customers');
+                    localStorage.removeItem('petro_pumps');
+                    
+                    // Reset to initial empty state
+                    db.sales = [];
+                    db.expenses = [];
+                    db.customers = [];
+                    db.inventory = {
+                        petrol: { current: 0, capacity: 10000, price: 260.00, cost: 240.00 },
+                        diesel: { current: 0, capacity: 12000, price: 280.00, cost: 260.00 },
+                        premium: { current: 0, capacity: 8000, price: 290.00, cost: 270.00 }
+                    };
+                    db.pumps = [
+                        { id: 1, status: 'idle', currentMeter: 0, fuel: 'petrol' },
+                        { id: 2, status: 'idle', currentMeter: 0, fuel: 'diesel' },
+                        { id: 3, status: 'idle', currentMeter: 0, fuel: 'petrol' },
+                        { id: 4, status: 'idle', currentMeter: 0, fuel: 'premium' }
+                    ];
+                    
+                    saveData();
+                    updateDashboard();
+                    alert('✅ All data has been cleared. The system is now ready for your new data.');
+                    showSection('dashboard');
+                }
+            }
+        }
+
+        function resetSalesOnly() {
+            if (confirm('This will delete all sales transactions and accounting records, but keep inventory levels and settings. Continue?')) {
+                db.sales = [];
+                db.expenses = [];
+                localStorage.removeItem('petro_sales');
+                localStorage.removeItem('petro_expenses');
+                saveData();
+                updateDashboard();
+                alert('✅ Sales data cleared. Inventory and settings preserved.');
+            }
+        }
+
+        function exportData() {
+            const dataStr = JSON.stringify(db, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `petro_backup_${getTodayDate()}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function importData(input) {
+            const file = input.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    if (confirm('This will overwrite all current data. Continue?')) {
+                        db = imported;
+                        saveData();
+                        updateDashboard();
+                        alert('✅ Data imported successfully!');
+                    }
+                } catch (error) {
+                    alert('❌ Error reading file. Please select a valid backup file.');
+                }
+            };
+            reader.readAsText(file);
+            input.value = ''; // Reset input
+        }
+
+        function setInitialStock(e) {
+            e.preventDefault();
+            
+            db.inventory.petrol.current = parseFloat(document.getElementById('initial-petrol').value);
+            db.inventory.petrol.capacity = parseFloat(document.getElementById('capacity-petrol').value);
+            db.inventory.diesel.current = parseFloat(document.getElementById('initial-diesel').value);
+            db.inventory.diesel.capacity = parseFloat(document.getElementById('capacity-diesel').value);
+            db.inventory.premium.current = parseFloat(document.getElementById('initial-premium').value);
+            db.inventory.premium.capacity = parseFloat(document.getElementById('capacity-premium').value);
+            
+            saveData();
+            closeModal('initialStockModal');
+            renderInventory();
+            updateDashboard();
+            alert('✅ Initial stock levels set successfully!');
+        }
+
+        // Sale Processing
+        function updateSalePrice() {
+            const fuel = document.getElementById('sale-fuel').value;
+            document.getElementById('sale-price').value = db.settings.fuelPrices[fuel];
+            calculateSaleTotal();
+        }
+
+        function calculateSaleTotal() {
+            const price = parseFloat(document.getElementById('sale-price').value) || 0;
+            const qty = parseFloat(document.getElementById('sale-qty').value) || 0;
+            const total = price * qty;
+            document.getElementById('sale-total').value = formatMoney(total);
+            return total;
+        }
+
+        function processSale(e) {
+            e.preventDefault();
+            
+            const fuel = document.getElementById('sale-fuel').value;
+            const qty = parseFloat(document.getElementById('sale-qty').value);
+            const price = parseFloat(document.getElementById('sale-price').value);
+            const total = price * qty;
+            const payment = document.getElementById('sale-payment').value;
+            const pump = document.getElementById('sale-pump').value;
+            
+            if (db.inventory[fuel].current < qty) {
+                alert('❌ Insufficient fuel in tank! Available: ' + db.inventory[fuel].current + 'L');
+                return;
+            }
+            
+            const sale = {
+                id: generateId(),
+                date: new Date().toISOString(),
+                fuel: fuel,
+                quantity: qty,
+                price: price,
+                total: total,
+                payment: payment,
+                pump: pump,
+                tax: total * (db.settings.taxRate / 100)
+            };
+            
+            db.sales.push(sale);
+            db.inventory[fuel].current -= qty;
+            
+            const pumpObj = db.pumps.find(p => p.id == pump);
+            if (pumpObj) pumpObj.currentMeter += qty;
+            
+            saveData();
+            closeModal('newTransModal');
+            document.getElementById('saleForm').reset();
+            updateDashboard();
+            alert('✅ Sale completed successfully! Total: ' + formatMoney(total));
+        }
+
+        // Expense Processing
+        function addExpense(e) {
+            e.preventDefault();
+            
+            const expense = {
+                id: generateId(),
+                date: document.getElementById('expense-date').value,
+                category: document.getElementById('expense-cat').value,
+                amount: parseFloat(document.getElementById('expense-amt').value),
+                description: document.getElementById('expense-desc').value,
+                receipt: document.getElementById('expense-ref').value
+            };
+            
+            db.expenses.push(expense);
+            saveData();
+            closeModal('expenseModal');
+            updateAccounting();
+            alert('✅ Expense recorded successfully!');
+        }
+
+        // Inventory Management
+        function recordDelivery(e) {
+            e.preventDefault();
+            
+            const tank = document.getElementById('delivery-tank').value;
+            const qty = parseFloat(document.getElementById('delivery-qty').value);
+            const cost = parseFloat(document.getElementById('delivery-cost').value);
+            const invoice = document.getElementById('delivery-invoice').value;
+            
+            if (db.inventory[tank].current + qty > db.inventory[tank].capacity) {
+                alert('❌ Delivery exceeds tank capacity! Available space: ' + 
+                      (db.inventory[tank].capacity - db.inventory[tank].current) + 'L');
+                return;
+            }
+            
+            db.inventory[tank].current += qty;
+            
+            if (!db.inventory[tank].logs) db.inventory[tank].logs = [];
+            db.inventory[tank].logs.push({
+                date: new Date().toISOString(),
+                type: 'delivery',
+                quantity: qty,
+                balance: db.inventory[tank].current,
+                invoice: invoice,
+                cost: cost
+            });
+            
+            saveData();
+            closeModal('deliveryModal');
+            renderInventory();
+            updateDashboard();
+            alert('✅ Delivery recorded successfully!');
+        }
+
+        function renderInventory() {
+            const container = document.getElementById('tank-cards');
+            container.innerHTML = '';
+            
+            Object.entries(db.inventory).forEach(([fuel, data]) => {
+                const percentage = (data.current / data.capacity) * 100;
+                let statusClass = 'status-active';
+                let statusText = 'Normal';
+                
+                if (percentage === 0) {
+                    statusClass = 'status-danger';
+                    statusText = 'Empty';
+                } else if (percentage < 20) {
+                    statusClass = 'status-danger';
+                    statusText = 'Critical';
+                } else if (percentage < 40) {
+                    statusClass = 'status-warning';
+                    statusText = 'Low';
+                }
+                
+                const card = document.createElement('div');
+                card.className = 'form-group';
+                card.style.cssText = 'background: #f9fafb; padding: 20px; border-radius: 12px; border-left: 4px solid var(--primary)';
+                card.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <h4 style="text-transform: uppercase; color: var(--primary);">${fuel}</h4>
+                        <span class="status-badge ${statusClass}">${statusText}</span>
+                    </div>
+                    <div style="margin-bottom: 10px;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                            <span>Current Stock</span>
+                            <span style="font-weight: bold;">${data.current.toLocaleString()} L / ${data.capacity.toLocaleString()} L</span>
+                        </div>
+                        <div style="background: #e5e7eb; height: 20px; border-radius: 10px; overflow: hidden;">
+                            <div style="background: ${percentage === 0 ? '#ef4444' : percentage < 20 ? 'var(--danger)' : percentage < 40 ? 'var(--warning)' : 'var(--success)'}; 
+                                        width: ${percentage}%; height: 100%; transition: width 0.3s;"></div>
+                        </div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 14px; color: #6b7280;">
+                        <div>Retail: ${formatMoney(data.price)}/L</div>
+                        <div>Cost: ${formatMoney(data.cost)}/L</div>
+                        <div>Margin: ${((data.price - data.cost)/data.price * 100).toFixed(1)}%</div>
+                        <div>Value: ${formatMoney(data.current * data.cost)}</div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+            
+            const tbody = document.querySelector('#inventory-log tbody');
+            tbody.innerHTML = '';
+            let hasLogs = false;
+            
+            Object.entries(db.inventory).forEach(([fuel, data]) => {
+                if (data.logs && data.logs.length > 0) {
+                    hasLogs = true;
+                    data.logs.slice(-5).reverse().forEach(log => {
+                        tbody.innerHTML += `
+                            <tr>
+                                <td>${new Date(log.date).toLocaleDateString()}</td>
+                                <td>${fuel}</td>
+                                <td>${log.type}</td>
+                                <td>${log.quantity.toLocaleString()} L</td>
+                                <td>${log.balance.toLocaleString()} L</td>
+                                <td>${log.invoice || '-'}</td>
+                            </tr>
+                        `;
+                    });
+                }
+            });
+            
+            if (!hasLogs) {
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center" style="color: #6b7280; padding: 30px;">No stock movements recorded</td></tr>';
+            }
+        }
+
+        function renderPumps() {
+            const container = document.getElementById('pump-container');
+            container.innerHTML = '';
+            
+            db.pumps.forEach(pump => {
+                const pumpCard = document.createElement('div');
+                pumpCard.className = 'pump-card';
+                pumpCard.innerHTML = `
+                    <div class="pump-header">
+                        <div class="pump-number">Pump 0${pump.id}</div>
+                        <div class="pump-status ${pump.status}"></div>
+                    </div>
+                    <div style="margin-bottom: 15px;">
+                        <small style="color: #6b7280;">Current Meter Reading</small>
+                        <div class="meter-display">${pump.currentMeter.toLocaleString()}</div>
+                    </div>
+                    <div class="fuel-selector">
+                        <div class="fuel-type ${pump.fuel === 'petrol' ? 'active' : ''}" onclick="selectPumpFuel(${pump.id}, 'petrol')">Petrol</div>
+                        <div class="fuel-type ${pump.fuel === 'diesel' ? 'active' : ''}" onclick="selectPumpFuel(${pump.id}, 'diesel')">Diesel</div>
+                        <div class="fuel-type ${pump.fuel === 'premium' ? 'active' : ''}" onclick="selectPumpFuel(${pump.id}, 'premium')">Premium</div>
+                    </div>
+                    <button class="btn btn-primary" style="width: 100%;" onclick="openModal('newTransModal'); document.getElementById('sale-pump').value='${pump.id}';">
+                        Start Dispensing
+                    </button>
+                `;
+                container.appendChild(pumpCard);
+            });
+        }
+
+        function selectPumpFuel(pumpId, fuel) {
+            const pump = db.pumps.find(p => p.id === pumpId);
+            if (pump) {
+                pump.fuel = fuel;
+                renderPumps();
+                saveData();
+            }
+        }
+
+        // Accounting Functions
+        function updateAccounting() {
+            const today = getTodayDate();
+            const todaySales = db.sales.filter(s => s.date.startsWith(today));
+            const todayExpenses = db.expenses.filter(e => e.date === today);
+            
+            const totalRevenue = todaySales.reduce((sum, s) => sum + s.total, 0);
+            const totalExpenses = todayExpenses.reduce((sum, e) => sum + e.amount, 0);
+            const totalTax = todaySales.reduce((sum, s) => sum + s.tax, 0);
+            
+            document.getElementById('today-sales').textContent = formatMoney(totalRevenue);
+            document.getElementById('today-expenses').textContent = formatMoney(totalExpenses);
+            document.getElementById('today-profit').textContent = formatMoney(totalRevenue - totalExpenses);
+            
+            let stockValue = 0;
+            Object.values(db.inventory).forEach(tank => {
+                stockValue += (tank.current * tank.cost);
+            });
+            document.getElementById('stock-value').textContent = formatMoney(stockValue);
+            
+            const cash = db.sales.filter(s => s.payment === 'cash').reduce((sum, s) => sum + s.total, 0);
+            const taxPayable = db.sales.reduce((sum, s) => sum + s.tax, 0);
+            
+            document.getElementById('total-assets').textContent = formatMoney(cash + stockValue);
+            document.getElementById('total-liabilities').textContent = formatMoney(taxPayable);
+            document.getElementById('total-equity').textContent = formatMoney((cash + stockValue) - taxPayable);
+            
+            document.getElementById('tax-collected').textContent = formatMoney(totalTax);
+            document.getElementById('tax-payable').textContent = formatMoney(taxPayable);
+            
+            renderLedger();
+            renderExpenses();
+        }
+
+        function renderLedger() {
+            const tbody = document.querySelector('#ledger-table tbody');
+            
+            if (db.sales.length === 0 && db.expenses.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center" style="color: #6b7280; padding: 30px;">No accounting entries yet. Add sales or expenses to see ledger entries.</td></tr>';
+                return;
+            }
+            
+            const totalSales = db.sales.reduce((sum, s) => sum + s.total, 0);
+            const totalExpenses = db.expenses.reduce((sum, e) => sum + e.amount, 0);
+            const taxTotal = db.sales.reduce((sum, s) => sum + s.tax, 0);
+            const stockValue = Object.values(db.inventory).reduce((sum, t) => sum + (t.current * t.cost), 0);
+            
+            tbody.innerHTML = `
+                <tr>
+                    <td>1001</td>
+                    <td>Cash on Hand</td>
+                    <td>Asset</td>
+                    <td>${formatMoney(db.sales.filter(s => s.payment === 'cash').reduce((sum, s) => sum + s.total, 0))}</td>
+                    <td>-</td>
+                    <td class="text-right">${formatMoney(db.sales.filter(s => s.payment === 'cash').reduce((sum, s) => sum + s.total, 0))}</td>
+                </tr>
+                <tr>
+                    <td>1200</td>
+                    <td>Inventory - Fuel</td>
+                    <td>Asset</td>
+                    <td>${formatMoney(stockValue)}</td>
+                    <td>-</td>
+                    <td class="text-right">${formatMoney(stockValue)}</td>
+                </tr>
+                <tr>
+                    <td>2001</td>
+                    <td>Sales Tax Payable (GST)</td>
+                    <td>Liability</td>
+                    <td>-</td>
+                    <td>${formatMoney(taxTotal)}</td>
+                    <td class="text-right">${formatMoney(taxTotal)}</td>
+                </tr>
+                <tr>
+                    <td>4000</td>
+                    <td>Fuel Sales Revenue</td>
+                    <td>Revenue</td>
+                    <td>-</td>
+                    <td>${formatMoney(totalSales)}</td>
+                    <td class="text-right">${formatMoney(totalSales)}</td>
+                </tr>
+                <tr>
+                    <td>6000</td>
+                    <td>Operating Expenses</td>
+                    <td>Expense</td>
+                    <td>${formatMoney(totalExpenses)}</td>
+                    <td>-</td>
+                    <td class="text-right">${formatMoney(totalExpenses)}</td>
+                </tr>
+            `;
+        }
+
+        function renderExpenses() {
+            const tbody = document.querySelector('#expenses-table tbody');
+            
+            if (db.expenses.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center" style="color: #6b7280; padding: 30px;">No expenses recorded yet</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = db.expenses.slice(-10).reverse().map(exp => `
+                <tr>
+                    <td>${exp.date}</td>
+                    <td>${exp.category}</td>
+                    <td>${exp.description}</td>
+                    <td class="text-right" style="color: var(--danger); font-weight: 600;">-${formatMoney(exp.amount)}</td>
+                    <td>${exp.receipt || '-'}</td>
+                </tr>
+            `).join('');
+        }
+
+        function filterExpenses() {
+            const category = document.getElementById('expense-category-filter').value;
+            const dateFrom = document.getElementById('expense-date-from').value;
+            
+            let filtered = db.expenses;
+            if (category) filtered = filtered.filter(e => e.category === category);
+            if (dateFrom) filtered = filtered.filter(e => e.date >= dateFrom);
+            
+            const tbody = document.querySelector('#expenses-table tbody');
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center" style="color: #6b7280; padding: 30px;">No expenses match your filters</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = filtered.reverse().map(exp => `
+                <tr>
+                    <td>${exp.date}</td>
+                    <td>${exp.category}</td>
+                    <td>${exp.description}</td>
+                    <td class="text-right" style="color: var(--danger); font-weight: 600;">-${formatMoney(exp.amount)}</td>
+                    <td>${exp.receipt || '-'}</td>
+                </tr>
+            `).join('');
+        }
+
+        // Sales Rendering
+        function renderSales() {
+            const tbody = document.querySelector('#sales-table tbody');
+            
+            if (db.sales.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" class="text-center" style="color: #6b7280; padding: 30px;">No sales transactions yet. Click "New Sale" to add your first transaction.</td></tr>';
+            } else {
+                tbody.innerHTML = db.sales.slice(-20).reverse().map(sale => `
+                    <tr>
+                        <td>#${sale.id.substr(-6).toUpperCase()}</td>
+                        <td>${new Date(sale.date).toLocaleString()}</td>
+                        <td>${sale.fuel}</td>
+                        <td>${sale.quantity.toFixed(2)} L</td>
+                        <td>${formatMoney(sale.price)}</td>
+                        <td class="text-right" style="font-weight: 600;">${formatMoney(sale.total)}</td>
+                        <td><span class="status-badge status-active">${sale.payment}</span></td>
+                        <td><button class="btn btn-primary" style="padding: 5px 10px; font-size: 12px;" onclick="printReceipt('${sale.id}')">Print</button></td>
+                    </tr>
+                `).join('');
+            }
+            
+            // Recent transactions in dashboard
+            const recentTbody = document.querySelector('#recent-transactions tbody');
+            if (db.sales.length === 0) {
+                recentTbody.innerHTML = '<tr><td colspan="4" class="text-center" style="color: #6b7280; padding: 30px;">No transactions recorded yet</td></tr>';
+            } else {
+                recentTbody.innerHTML = db.sales.slice(-5).reverse().map(sale => `
+                    <tr>
+                        <td>${new Date(sale.date).toLocaleTimeString()}</td>
+                        <td>${sale.fuel}</td>
+                        <td class="text-right">${formatMoney(sale.total)}</td>
+                        <td>${sale.payment}</td>
+                    </tr>
+                `).join('');
+            }
+        }
+
+        function filterSales() {
+            const fuel = document.getElementById('sales-filter-fuel').value;
+            const date = document.getElementById('sales-filter-date').value;
+            const payment = document.getElementById('sales-filter-payment').value;
+            
+            let filtered = db.sales;
+            if (fuel) filtered = filtered.filter(s => s.fuel === fuel);
+            if (date) filtered = filtered.filter(s => s.date.startsWith(date));
+            if (payment) filtered = filtered.filter(s => s.payment === payment);
+            
+            const tbody = document.querySelector('#sales-table tbody');
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" class="text-center" style="color: #6b7280; padding: 30px;">No sales match your filters</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = filtered.reverse().map(sale => `
+                <tr>
+                    <td>#${sale.id.substr(-6).toUpperCase()}</td>
+                    <td>${new Date(sale.date).toLocaleString()}</td>
+                    <td>${sale.fuel}</td>
+                    <td>${sale.quantity.toFixed(2)} L</td>
+                    <td>${formatMoney(sale.price)}</td>
+                    <td class="text-right" style="font-weight: 600;">${formatMoney(sale.total)}</td>
+                    <td><span class="status-badge status-active">${sale.payment}</span></td>
+                    <td><button class="btn btn-primary" style="padding: 5px 10px; font-size: 12px;">Print</button></td>
+                </tr>
+            `).join('');
+        }
+
+        // Customer Management
+        function addCustomer(e) {
+            e.preventDefault();
+            
+            const customer = {
+                id: generateId(),
+                name: document.getElementById('cust-name').value,
+                phone: document.getElementById('cust-phone').value,
+                email: document.getElementById('cust-email').value,
+                creditLimit: parseFloat(document.getElementById('cust-limit').value),
+                balance: 0,
+                status: 'active'
+            };
+            
+            db.customers.push(customer);
+            saveData();
+            closeModal('customerModal');
+            renderCustomers();
+            alert('✅ Customer added successfully!');
+        }
+
+        function renderCustomers() {
+            const tbody = document.querySelector('#customers-table tbody');
+            
+            if (db.customers.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center" style="color: #6b7280; padding: 30px;">No customers added yet</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = db.customers.map(cust => `
+                <tr>
+                    <td>#${cust.id.substr(-6).toUpperCase()}</td>
+                    <td>${cust.name}</td>
+                    <td>${cust.phone || '-'}</td>
+                    <td>${formatMoney(cust.creditLimit)}</td>
+                    <td class="text-right ${cust.balance > 0 ? 'text-danger' : ''}" style="font-weight: 600;">
+                        ${formatMoney(cust.balance)}
+                    </td>
+                    <td><span class="status-badge status-active">${cust.status}</span></td>
+                    <td>
+                        <button class="btn btn-primary" style="padding: 5px 10px; font-size: 12px;">Edit</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Settings
+        function renderSettings() {
+            const pricingContainer = document.getElementById('pricing-settings');
+            pricingContainer.innerHTML = Object.entries(db.settings.fuelPrices).map(([fuel, price]) => `
+                <div class="form-group">
+                    <label>${fuel.charAt(0).toUpperCase() + fuel.slice(1)} Price per Liter (Rs.)</label>
+                    <input type="number" class="form-control fuel-price-input" data-fuel="${fuel}" value="${price}" step="0.01">
+                </div>
+            `).join('');
+            
+            document.getElementById('setting-name').value = db.settings.name;
+            document.getElementById('setting-tax').value = db.settings.taxRate;
+        }
+
+        function saveSettings() {
+            db.settings.name = document.getElementById('setting-name').value;
+            db.settings.taxRate = parseFloat(document.getElementById('setting-tax').value);
+            
+            document.querySelectorAll('.fuel-price-input').forEach(input => {
+                db.settings.fuelPrices[input.dataset.fuel] = parseFloat(input.value);
+                db.inventory[input.dataset.fuel].price = parseFloat(input.value);
+            });
+            
+            saveData();
+            alert('✅ Settings saved successfully!');
+        }
+
+        // Reports
+        function generateReport() {
+            const type = document.getElementById('report-type').value;
+            const start = document.getElementById('report-start').value;
+            const end = document.getElementById('report-end').value;
+            
+            let content = '';
+            
+            if (type === 'daily') {
+                const today = getTodayDate();
+                const sales = db.sales.filter(s => s.date.startsWith(today));
+                const expenses = db.expenses.filter(e => e.date === today);
+                const totalSales = sales.reduce((sum, s) => sum + s.total, 0);
+                const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
+                
+                content = `
+                    <h2 style="color: var(--primary); margin-bottom: 20px;">Daily Report - ${today}</h2>
+                    <div class="accounting-summary">
+                        <div class="account-card">
+                            <h4>Total Sales</h4>
+                            <div class="amount">${formatMoney(totalSales)}</div>
+                        </div>
+                        <div class="account-card" style="border-left-color: var(--danger);">
+                            <h4>Total Expenses</h4>
+                            <div class="amount">${formatMoney(totalExpenses)}</div>
+                        </div>
+                        <div class="account-card" style="border-left-color: var(--success);">
+                            <h4>Net Profit</h4>
+                            <div class="amount">${formatMoney(totalSales - totalExpenses)}</div>
+                        </div>
+                    </div>
+                    <h3>Transactions Detail</h3>
+                    ${sales.length === 0 ? '<p style="color: #6b7280;">No transactions for this period</p>' : `
+                    <table>
+                        <thead>
+                            <tr><th>Time</th><th>Fuel</th><th>Qty</th><th>Total</th><th>Payment</th></tr>
+                        </thead>
+                        <tbody>
+                            ${sales.map(s => `
+                                <tr>
+                                    <td>${new Date(s.date).toLocaleTimeString()}</td>
+                                    <td>${s.fuel}</td>
+                                    <td>${s.quantity}L</td>
+                                    <td>${formatMoney(s.total)}</td>
+                                    <td>${s.payment}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>`}
+                `;
+            } else if (type === 'monthly') {
+                const currentMonth = new Date().toISOString().substr(0, 7);
+                const sales = db.sales.filter(s => s.date.startsWith(currentMonth));
+                const revenue = sales.reduce((sum, s) => sum + s.total, 0);
+                const cogs = sales.reduce((sum, s) => sum + (s.quantity * db.inventory[s.fuel].cost), 0);
+                
+                content = `
+                    <h2 style="color: var(--primary); margin-bottom: 20px;">Monthly P&L - ${currentMonth}</h2>
+                    <table style="width: 100%; margin-top: 20px;">
+                        <tr>
+                            <td style="padding: 10px;"><strong>Revenue</strong></td>
+                            <td style="padding: 10px; text-align: right;">${formatMoney(revenue)}</td>
+                        </tr>
+                        <tr style="background: #f9fafb;">
+                            <td style="padding: 10px; padding-left: 30px;">Cost of Goods Sold</td>
+                            <td style="padding: 10px; text-align: right; color: var(--danger);">-${formatMoney(cogs)}</td>
+                        </tr>
+                        <tr style="background: #f3f4f6; font-weight: bold;">
+                            <td style="padding: 10px;">Gross Profit</td>
+                            <td style="padding: 10px; text-align: right; color: var(--success);">${formatMoney(revenue - cogs)}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px; padding-left: 30px;">Operating Expenses</td>
+                            <td style="padding: 10px; text-align: right; color: var(--danger);">-${formatMoney(db.expenses.reduce((sum, e) => sum + e.amount, 0))}</td>
+                        </tr>
+                        <tr style="background: #1f2937; color: white; font-weight: bold; font-size: 18px;">
+                            <td style="padding: 15px 10px;">NET PROFIT</td>
+                            <td style="padding: 15px 10px; text-align: right;">${formatMoney(revenue - cogs - db.expenses.reduce((sum, e) => sum + e.amount, 0))}</td>
+                        </tr>
+                    </table>
+                `;
+            }
+            
+            document.getElementById('report-content').innerHTML = content;
+        }
+
+        function printReceipt(saleId) {
+            const sale = db.sales.find(s => s.id === saleId);
+            if (!sale) return;
+            
+            const receiptWindow = window.open('', '_blank');
+            receiptWindow.document.write(`
+                <html>
+                <head>
+                    <title>Receipt #${saleId.substr(-6).toUpperCase()}</title>
+                    <style>
+                        body { font-family: monospace; width: 300px; margin: 0 auto; padding: 20px; }
+                        .center { text-align: center; }
+                        .line { border-top: 1px dashed #000; margin: 10px 0; }
+                        .right { text-align: right; }
+                        .bold { font-weight: bold; }
+                    </style>
+                </head>
+                <body>
+                    <div class="center bold" style="font-size: 18px; margin-bottom: 5px;">${db.settings.name}</div>
+                    <div class="center" style="font-size: 12px; margin-bottom: 5px;">
+                        Islamabad, Pakistan<br>
+                        NTN: XXXXXXX-X
+                    </div>
+                    <div class="center" style="font-size: 12px; margin-bottom: 20px;">
+                        ${new Date(sale.date).toLocaleString()}<br>
+                        Receipt #: ${saleId.substr(-6).toUpperCase()}
+                    </div>
+                    
+                    <div>Pump: ${sale.pump}</div>
+                    <div>Fuel: ${sale.fuel.toUpperCase()}</div>
+                    <div>Price/L: ${formatMoney(sale.price)}</div>
+                    
+                    <div class="line"></div>
+                    
+                    <div style="display: flex; justify-content: space-between;">
+                        <span>Liters:</span>
+                        <span class="bold">${sale.quantity.toFixed(3)} L</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; font-size: 20px; margin-top: 10px;">
+                        <span class="bold">TOTAL:</span>
+                        <span class="bold">${formatMoney(sale.total)}</span>
+                    </div>
+                    
+                    <div class="line"></div>
+                    
+                    <div>Payment: ${sale.payment.toUpperCase()}</div>
+                    <div>GST (${db.settings.taxRate}%): ${formatMoney(sale.tax)}</div>
+                    
+                    <div class="line"></div>
+                    
+                    <div class="center" style="margin-top: 30px; font-size: 12px;">
+                        Thank you for your business!<br>
+                        Drive Safely<br><br>
+                        <small>FBR/SECP Registered</small>
+                    </div>
+                </body>
+                </html>
+            `);
+            receiptWindow.document.close();
+            receiptWindow.print();
+        }
+
+        // Dashboard Update
+        function updateDashboard() {
+            const today = getTodayDate();
+            const todaySales = db.sales.filter(s => s.date.startsWith(today));
+            const todayExpenses = db.expenses.filter(e => e.date === today);
+            
+            const totalSales = todaySales.reduce((sum, s) => sum + s.total, 0);
+            const totalExpenses = todayExpenses.reduce((sum, e) => sum + e.amount, 0);
+            
+            document.getElementById('today-sales').textContent = formatMoney(totalSales);
+            document.getElementById('today-expenses').textContent = formatMoney(totalExpenses);
+            document.getElementById('today-profit').textContent = formatMoney(totalSales - totalExpenses);
+            
+            let stockValue = 0;
+            Object.values(db.inventory).forEach(tank => {
+                stockValue += (tank.current * tank.cost);
+            });
+            document.getElementById('stock-value').textContent = formatMoney(stockValue);
+            
+            renderSales();
+        }
+
+        // Clock
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('current-date').textContent = now.toLocaleDateString('en-PK', { 
+                weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
+            });
+            document.getElementById('current-time').textContent = now.toLocaleTimeString('en-PK');
+        }
+
+        // Initialize
+        window.onload = function() {
+            loadData(); // Load any saved data
+            updateTime();
+            setInterval(updateTime, 1000);
+            updateDashboard();
+            
+            // Set today's date for filters
+            document.getElementById('sales-filter-date').value = getTodayDate();
+            document.getElementById('report-start').value = getTodayDate();
+            document.getElementById('report-end').value = getTodayDate();
+            
+            // Check if first run
+            if (db.sales.length === 0 && db.inventory.petrol.current === 0 && db.inventory.diesel.current === 0) {
+                console.log('Fresh install detected - Ready for new data entry');
+            }
+        };
+
+        // Close modals on outside click
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.classList.remove('active');
+            }
+        }
+    </script>
+</body>
+</html>
